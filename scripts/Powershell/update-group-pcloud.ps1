@@ -29,7 +29,9 @@ function Initialize-Environment(){
     $loop = $true
 
     while($loop){
+
         $chc = Read-Host -Prompt "Are you using installeruser@cyberark.cloud.####? (y/n)"
+
         switch ($chc) {
             'y' {
                 Write-Host "Using installer user for authentication."
@@ -45,6 +47,7 @@ function Initialize-Environment(){
                 Write-Host "Invalid input received, please answer with y or n."
             }
         }
+
     }
 
 }
@@ -67,14 +70,37 @@ function Set-TokenData(){
 
     if ( $isu -eq $false ) {
 
+        $authnUrl = "https://" + $privdomain + ".privilegecloud.cyberark.cloud/PasswordVault/api/auth/Cyberark/Logon"
+        $method = "POST"
+
+        $body = @{
+
+            username = $client
+            password = $secret
+        }
+
+        $jBody = $body | ConvertTo-Json
+        $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $headers.Add("Content-Type", "application/json")
+
+        try {
+
+            $localToken = Invoke-RestMethod -Method $Method -Body $jBody -Uri $authnUrl
+
+            return $localToken
+
+        } catch {
+
+            Write-Host $_
+
+        } 
+
+    }
+
     } elseif ( $isu -eq $true ) {
 
         $authnUrl = "https://" + $tenant + ".id.cyberark.cloud/oauth2/platformtoken"
         $method = "POST"
-
-        $client = [System.Web.HttpUtility]::UrlEncode($C.UserName)
-        $type = "client_credentials"
-        $secret = [System.Web.HttpUtility]::UrlEncode($C.GetNetworkCredential().Password)
 
         $body = "client_id=" + $client + "&grant_type=" + $type + "&client_secret=" + $secret
 
