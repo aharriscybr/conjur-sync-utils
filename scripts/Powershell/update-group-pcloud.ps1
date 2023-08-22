@@ -2,7 +2,18 @@
 Add-Type -AssemblyName System.Web
 
 function Initialize-Environment(){
-    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+    Configure Script to Authenticate and Update Synchronizer Safe Data.
+    .PARAMETER IdentityTenant
+    The ISPSS Tenant (e.g. ####)
+    .PARAMETER PrivDomain
+    The PVWA server domain (e.g. sample-domain)
+    .PARAMETER SafeName
+    The Synchronizer Safe Name(e.g. ConjurSync
+    .PARAMETER AuthnUserType
+    Are you using the installeruser@cyberark.cloud.####?
+    #>
     param(
         [Parameter(Position=0,mandatory=$true)]
         [string] $IdentityTenant,
@@ -10,50 +21,79 @@ function Initialize-Environment(){
         [string] $PrivDomain,
         [Parameter(Position=2,mandatory=$true)]
         [string] $SafeName
+
     )
 
     $global:tenant = $IdentityTenant
     $global:privdomain = $PrivDomain
     $global:safe = $SafeName
-    $global:type = $AuthnType
+    
+    $loop = $true
+
+    while($loop){
+        $chc = Read-Host -Prompt "Are you using installeruser@cyberark.cloud.####? (y/n)"
+        switch ($chc) {
+            'y' {
+                Write-Host "Installer Logic Implementation"
+            }
+            'n' {
+                Write-Host "Local Admin Logic Implementation"
+            }
+            Default {
+                Write-Host "Invalid input received, please answer with y or n."
+            }
+        }
+    }
 
 }
 
 function Set-TokenData(){
-    
-    [CmdletBinding()]
     param(
         [Parameter(Position=0,mandatory=$true)]
         [string] $tenant
+        [Parameter(Position=1,mandatory=$true)]
+        [string] $type
+        [Parameter(Position=2,mandatory=$true)]
+        [string] $PrivDomain
     )
 
     $C = Get-Credential
-
-    $authnUrl = "https://" + $tenant + ".id.cyberark.cloud/oauth2/platformtoken"
-    $method = "POST"
 
     $client = [System.Web.HttpUtility]::UrlEncode($C.UserName)
     $type = "client_credentials"
     $secret = [System.Web.HttpUtility]::UrlEncode($C.GetNetworkCredential().Password)
 
-    $body = "client_id=" + $client + "&grant_type=" + $type + "&client_secret=" + $secret
+    if ( $type -eq "installeruser" ) {
 
-    $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+    } else {
 
-    $headers.Add("Content-Type", "application/x-www-form-urlencoded")
+        $authnUrl = "https://" + $tenant + ".id.cyberark.cloud/oauth2/platformtoken"
+        $method = "POST"
 
-    try {
+        $client = [System.Web.HttpUtility]::UrlEncode($C.UserName)
+        $type = "client_credentials"
+        $secret = [System.Web.HttpUtility]::UrlEncode($C.GetNetworkCredential().Password)
 
-        $localToken = Invoke-RestMethod -Method $Method -Body $body -Uri $authnUrl
+        $body = "client_id=" + $client + "&grant_type=" + $type + "&client_secret=" + $secret
 
-        return "Bearer " + $localToken.access_token
+        $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
 
-    } catch {
+        $headers.Add("Content-Type", "application/x-www-form-urlencoded")
 
-        Write-Host $_
+        try {
 
-    } 
+            $localToken = Invoke-RestMethod -Method $Method -Body $body -Uri $authnUrl
+
+            return "Bearer " + $localToken.access_token
+
+        } catch {
+
+            Write-Host $_
+
+        } 
+
+    }
 
 }
 
-#Initialize-Environment
+Initialize-Environment
