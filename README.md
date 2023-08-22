@@ -1,1 +1,1 @@
-# Create
+# Currently only supports pCloud deployments (installer or non-installer user)
