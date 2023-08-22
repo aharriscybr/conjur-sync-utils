@@ -11,8 +11,6 @@ function Initialize-Environment(){
     The PVWA server domain (e.g. sample-domain)
     .PARAMETER SafeName
     The Synchronizer Safe Name(e.g. ConjurSync
-    .PARAMETER AuthnUserType
-    Are you using the installeruser@cyberark.cloud.####?
     #>
     param(
         [Parameter(Position=0,mandatory=$true)]
@@ -34,10 +32,14 @@ function Initialize-Environment(){
         $chc = Read-Host -Prompt "Are you using installeruser@cyberark.cloud.####? (y/n)"
         switch ($chc) {
             'y' {
-                Write-Host "Installer Logic Implementation"
+                Write-Host "Using installer user for authentication."
+                $global:isu = $true
+                $loop = $false
             }
             'n' {
-                Write-Host "Local Admin Logic Implementation"
+                Write-Host "Using local admin user for authentication."
+                $global:isu = $false
+                $loop = $false
             }
             Default {
                 Write-Host "Invalid input received, please answer with y or n."
@@ -63,9 +65,9 @@ function Set-TokenData(){
     $type = "client_credentials"
     $secret = [System.Web.HttpUtility]::UrlEncode($C.GetNetworkCredential().Password)
 
-    if ( $type -eq "installeruser" ) {
+    if ( $isu -eq $false ) {
 
-    } else {
+    } elseif ( $isu -eq $true ) {
 
         $authnUrl = "https://" + $tenant + ".id.cyberark.cloud/oauth2/platformtoken"
         $method = "POST"
