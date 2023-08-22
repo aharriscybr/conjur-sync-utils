@@ -53,14 +53,6 @@ function Initialize-Environment(){
 }
 
 function Set-TokenData(){
-    param(
-        [Parameter(Position=0,mandatory=$true)]
-        [string] $tenant
-        [Parameter(Position=1,mandatory=$true)]
-        [string] $type
-        [Parameter(Position=2,mandatory=$true)]
-        [string] $PrivDomain
-    )
 
     $C = Get-Credential
 
@@ -121,6 +113,64 @@ function Set-TokenData(){
         } 
 
     }
+
+}
+
+function Set-Admins() {
+
+    $g = "Vault Admins"
+    $t = "Group"
+    $safeAdminPermission = @{
+        useAccounts                            = $True
+        retrieveAccounts                       = $True
+        listAccounts                           = $True
+        addAccounts                            = $True
+        updateAccountContent                   = $True
+        updateAccountProperties                = $True
+        initiateCPMAccountManagementOperations = $True
+        specifyNextAccountContent              = $True
+        renameAccounts                         = $True
+        deleteAccounts                         = $True
+        unlockAccounts                         = $True
+        manageSafe                             = $True
+        manageSafeMembers                      = $True
+        backupSafe                             = $True
+        viewAuditLog                           = $True
+        viewSafeMembers                        = $True
+        accessWithoutConfirmation              = $True
+        createFolders                          = $True
+        deleteFolders                          = $True
+        moveAccountsAndFolders                 = $True
+        requestsAuthorizationLevel1            = $True
+        requestsAuthorizationLevel2            = $False
+    }
+
+    $body = @{
+        $memberName = $g
+        $MemberType = $t
+        permissions = $safeAdminPermission
+    }
+
+    $jBody = $body | ConvertTo-Json
+    $uri = "https://$privdomain.privilegecloud.cyberark.cloud/passwordvault/api/safes/$safe"
+
+    $session = Set-TokenData
+    $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+    $headers.Add("Content-Type", "application/json")
+    $headers.Add("Authorization", $session)
+
+    try {
+
+        Invoke-RestMethod -Method $Method -Body $jBody -Uri $uri -Header $headers
+
+    } catch {
+
+        Write-Host $_.Exception.ResponseCode
+        Write-Host $_
+
+    } 
+
+    
 
 }
 
