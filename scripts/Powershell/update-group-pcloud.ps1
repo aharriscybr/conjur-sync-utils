@@ -60,7 +60,7 @@ function Set-TokenData(){
     $type = "client_credentials"
     $secret = [System.Web.HttpUtility]::UrlEncode($C.GetNetworkCredential().Password)
 
-    if ( $isu -eq $false ) {
+    if ( $isu -eq $true ) {
 
         $authnUrl = "https://" + $privdomain + ".privilegecloud.cyberark.cloud/PasswordVault/api/auth/Cyberark/Logon"
         $method = "POST"
@@ -89,7 +89,7 @@ function Set-TokenData(){
 
     }
 
-    } elseif ( $isu -eq $true ) {
+    } elseif ( $isu -eq $false ) {
 
         $authnUrl = "https://" + $tenant + ".id.cyberark.cloud/oauth2/platformtoken"
         $method = "POST"
